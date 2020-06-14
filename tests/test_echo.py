@@ -7,7 +7,7 @@ Students are expected to edit this module, to add more tests to run
 against the 'echo.py' program.
 """
 
-__author__ = "???"
+__author__ = "Ruth Mayodi,ruthmayodi with the help of Howard Post"
 
 import sys
 import importlib
@@ -87,10 +87,34 @@ class TestEcho(unittest.TestCase):
         self.assertIsInstance(
             result, argparse.ArgumentParser,
             "create_parser() function is not returning a parser object")
+        ns = result.parse_args(['hello world', '-u'])
+        self.assertTrue(ns.text == 'hello world')
+        self.assertTrue(ns.upper, 'parser does not accept -u')
+        ns = result.parse_args(['hello world', '--upper'])
+        self.assertTrue(ns.upper, 'parser does not accept --upper')
+        ns = result.parse_args(['hello world', '-l'])
+        self.assertTrue(ns.lower, 'parser does not accept -l')
+        ns = result.parse_args(['hello world', '--lower'])
+        self.assertTrue(ns.lower, 'parser does not accept --lower')
+        ns = result.parse_args(['hello world', '-t'])
+        self.assertTrue(ns.title, 'parser does not accept -t')
+        ns = result.parse_args(['hello world', '--title'])
+        self.assertTrue(ns.title, 'parser does not accept --title')
 
-    #
-    # Students: add more parser tests here
-    #
+
+    def test_help(self):
+        """ Check that usage is printed when -h option is given"""
+       # Run the command `python ./echo.py -h` in a separate process, then
+        # collect its output.
+        process = subprocess.Popen(
+            ["python", "./echo.py", "-h"],
+            stdout=subprocess.PIPE)
+        stdout, _ = process.communicate()
+        with open("USAGE") as f:
+            usage = f.read()
+
+        self.assertEqual(stdout.decode('utf-8'), usage)
+
 
     def test_echo(self):
         """Check if main() function prints anything at all"""
@@ -113,6 +137,55 @@ class TestEcho(unittest.TestCase):
             self.module.main(args)
         assert output, "The program did not print anything."
         self.assertEqual(output[0], "hello world")
+
+    def test_lower_long(self):
+        """Check if short option '--lower' performs lowercasing"""
+        args = ["--lower", "HELLO WORLD"]
+        with Capturing() as output:
+            self.module.main(args)
+        assert output, "The program did not print anything."
+        self.assertEqual(output[0], "hello world")
+
+    def test_upper_short(self):
+        """Check if short option '-u' performs uppercasing"""
+        args = ["-u", "hello world"]
+        with Capturing() as output:
+            self.module.main(args)
+        assert output, "The program did not print anything."
+        self.assertEqual(output[0], "HELLO WORLD")
+    
+    def test_upper_long(self):
+        """Check if long option '--upper' performs uppercasing"""
+        args = ["--upper", "hello world"]
+        with Capturing() as output:
+            self.module.main(args)
+        assert output, "The program did not print anything."
+        self.assertEqual(output[0], "HELLO WORLD")
+
+    def test_title_short(self):
+        """Check if short option '-t' performs titlecasing"""
+        args = ["-t", "hello world"]
+        with Capturing() as output:
+            self.module.main(args)
+        assert output, "The program did not print anything."
+        self.assertEqual(output[0], "Hello World")
+    
+    def test_title_long(self):
+        """Check if long option '--title' performs titlecasing"""
+        args = ["--title", "hello world"]
+        with Capturing() as output:
+            self.module.main(args)
+        assert output, "The program did not print anything."
+        self.assertEqual(output[0], "Hello World")
+
+    def test_multiple_args(self):
+        """Check if multiple options -ult perfoms correctly"""
+        args = ["-ult", "hELlo world"]
+        with Capturing() as output:
+            self.module.main(args)
+        assert output, "The program did not print anything."
+        self.assertEqual(output[0], "Hello World")
+
 
     #
     # Students: add more cmd line options tests here.
